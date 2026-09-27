@@ -1,0 +1,59 @@
+name: .NET 8 Kafka API CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  # Job 1: Strict Testing Gate
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore -c Release
+
+    - name: Run Unit Tests
+      # The pipeline will fail here and halt if your code breaks tests
+      run: dotnet test --no-build --verbosity normal -c Release
+
+  # Job 2: Publish to Registry (Only runs if Job 1 passes)
+  publish-docker-image:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Log in to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set lowercase image name
+      id: image
+      run: echo "tag=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')/my-kafka-api:latest" >> "$GITHUB_OUTPUT"
+
+    - name: Build and Push Docker Image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        # This publishes your code as a container image tied to your repo
+        tags: ${{ steps.image.outputs.tag }}
