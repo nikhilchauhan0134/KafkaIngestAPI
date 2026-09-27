@@ -55,5 +55,5 @@ jobs:
       with:
         context: .
         push: true
-        # This publishes your code as a container image tied to your repo
-        tags: ${{ steps.image.outputs.tag }}
+        provenance: false
+        tags: ghcr.io/nikhilchauhan0134/kafkaingestapi:latest
