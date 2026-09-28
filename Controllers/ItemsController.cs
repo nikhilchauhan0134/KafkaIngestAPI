@@ -24,7 +24,7 @@ public sealed class ItemsController : ControllerBase
         {
             return BadRequest(new
             {
-                error = "A JSON object with non-empty name and description is required."
+                error = "A JSON object with non-empty name"
             });
         }
 
@@ -32,7 +32,7 @@ public sealed class ItemsController : ControllerBase
         {
             return BadRequest(new
             {
-                error = "Name must be 200 characters or fewer and description must be 4000 characters or fewer."
+                error = "Name must be 200 characters or fewer"
             });
         }
 
